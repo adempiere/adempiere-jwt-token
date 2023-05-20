@@ -1,0 +1,119 @@
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+	id 'signing'
+}
+
+sourceCompatibility = 1.11
+def baseVersion = '3.9.4'
+def baseGroupId = 'io.github.adempiere'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+allprojects {
+    tasks.withType(Javadoc) {
+    	options.addStringOption('Xdoclint:none', '-quiet')
+   	}
+}
+
+dependencies {
+   api fileTree(
+        dir: 'lib',
+        include: [
+            '*.jar'
+        ]
+    )
+    //	ADempiere Core
+    api "${baseGroupId}:base:${baseVersion}"
+}
+
+sourceSets {
+    main {
+         java {
+            srcDirs = ['src/main/java']
+         }
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+
+def entityType = 'D'
+def version = System.getenv("ADEMPIERE_LIBRARY_VERSION") ?: "local-1.0.0"
+
+jar {
+    manifest {
+        attributes("Implementation-Title": "Adempiere Template Management",
+                   "Implementation-Version": version, 
+                   "EntityType": entityType)
+    }
+}
+
+publishing {
+    repositories {
+		mavenLocal()
+
+        maven {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = findProperty("sonatypeUsername")
+                password = findProperty("sonatypePassword")
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+        	groupId 'io.github.adempiere'
+            artifactId 'adempiere-template-project'
+            version
+           	from components.java
+           	pom {
+                name = 'ADempiere Template Project'
+                description = 'Fill it with project description'
+                url = 'http://adempiere.io/'
+                licenses {
+                    license {
+                        name = 'GNU General Public License, version 2'
+                        url = 'https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'yamelsenih'
+                        name = 'Yamel Senih'
+                        email = 'ysenih@erpya.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/adempiere/adempiere-template-project.git'
+                    developerConnection = 'scm:git:ssh://github.com/adempiere/adempiere-template-project.git'
+                    url = 'http://github.com/adempiere/adempiere-template-project'
+                }
+            }
+		}
+	}
+}
+
+signing {
+	def isReleaseVersion = !version.toString().startsWith("local") && !version.toString().endsWith("-SNAPSHOT")
+
+	sign configurations.archives
+
+	setRequired {
+		// signing is required if this is a release version and the artifacts are to be published
+		// do not use hasTask() as this require realization of the tasks that maybe are not necessary
+		isReleaseVersion && gradle.taskGraph.allTasks.any {
+			it.equals(PublishToMavenRepository)
+		}
+	}
+	def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
