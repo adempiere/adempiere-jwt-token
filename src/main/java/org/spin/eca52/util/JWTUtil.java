@@ -15,14 +15,14 @@
  * All Rights Reserved.                                                       *
  * Contributor(s): Yamel Senih www.erpya.com                                  *
  *****************************************************************************/
-package org.spin.template.util;
+package org.spin.eca52.util;
 
 /**
- * Add here all changes for core and statci methods
+ * Here all need for thus functionality of JWT
  * Please rename this class and package
  * @author Yamel Senih, ysenih@erpya.com, ERPCyA http://www.erpya.com
  */
-public class Changes {
-	/**	Colum added to core	*/
-	public static final String COLUMNNAME_ColumAddedToCore = "ColumAddedToCore";
+public class JWTUtil {
+	/**	Default key for JWT	*/
+	public static final String ECA52_JWT_SECRET_KEY = "ECA52_JWT_SECRET_KEY";
 }

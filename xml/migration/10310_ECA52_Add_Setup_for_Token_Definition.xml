@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Migrations>
+  <Migration EntityType="ECA52" Name="ECA52 Add Setup for Token Definition" ReleaseNo="1.0" SeqNo="10310">
+    <Step SeqNo="10" StepType="AD">
+      <PO AD_Table_ID="54786" Action="I" Record_ID="50079" Table="AD_SetupDefinition">
+        <Data AD_Column_ID="97377" Column="UUID">ab3b58b3-7f7a-4945-b6da-39d368ae8e37</Data>
+        <Data AD_Column_ID="97376" Column="UpdatedBy">100</Data>
+        <Data AD_Column_ID="97375" Column="Updated">2023-05-20 10:30:26.568</Data>
+        <Data AD_Column_ID="97374" Column="Name">Create a Definition for JWT</Data>
+        <Data AD_Column_ID="97373" Column="IsActive">true</Data>
+        <Data AD_Column_ID="97372" Column="Help" isNewNull="true"/>
+        <Data AD_Column_ID="97371" Column="EntityType">ECA52</Data>
+        <Data AD_Column_ID="97370" Column="Description">Use this setup for create a Token based on JWT, see https://jwt.io/</Data>
+        <Data AD_Column_ID="97369" Column="CreatedBy">100</Data>
+        <Data AD_Column_ID="97368" Column="Created">2023-05-20 10:30:26.568</Data>
+        <Data AD_Column_ID="97367" Column="Classname">org.spin.eca52.setup.CreateTokenDefinition</Data>
+        <Data AD_Column_ID="97366" Column="AD_SetupDefinition_ID">50079</Data>
+        <Data AD_Column_ID="97365" Column="AD_Org_ID">0</Data>
+        <Data AD_Column_ID="97364" Column="AD_Client_ID">0</Data>
+      </PO>
+    </Step>
+  </Migration>
+</Migrations>
