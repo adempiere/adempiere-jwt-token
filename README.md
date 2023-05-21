@@ -1,6 +1,8 @@
-# ADempiere Template Project
+# ADempiere JWT Token
 
-Fill it with a comment about project.
+A token generator using [JWT](https://jwt.io/) structure, this project is fine to generate third part access using JWT structure.
+
+Use this project if you need connect to ADempiere using [ADempiere Middleware](https://github.com/adempiere/adempiere-middleware)
 
 ## Requirements
 - [JDK 11 or later](https://adoptium.net/)
