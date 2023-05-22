@@ -73,12 +73,12 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
         	groupId 'io.github.adempiere'
-            artifactId 'adempiere-template-project'
+            artifactId 'adempiere-jwt-token'
             version
            	from components.java
            	pom {
-                name = 'ADempiere Template Project'
-                description = 'Fill it with project description'
+                name = 'ADempiere JWT Token'
+                description = 'Generate JWT Token for Login from third party access'
                 url = 'http://adempiere.io/'
                 licenses {
                     license {
@@ -94,9 +94,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/adempiere/adempiere-template-project.git'
-                    developerConnection = 'scm:git:ssh://github.com/adempiere/adempiere-template-project.git'
-                    url = 'http://github.com/adempiere/adempiere-template-project'
+                    connection = 'scm:git:git://github.com/adempiere/adempiere-jwt-token.git'
+                    developerConnection = 'scm:git:ssh://github.com/adempiere/adempiere-jwt-token.git'
+                    url = 'http://github.com/adempiere/adempiere-jwt-token'
                 }
             }
 		}
