@@ -62,6 +62,7 @@ public class CreateTokenDefinition implements ISetupDefinition {
 		//	
 		tokenDefinition = new MADTokenDefinition(context, 0, transactionName);
 		tokenDefinition.setAD_Org_ID(0);
+		tokenDefinition.setTokenType(MADTokenDefinition.TOKENTYPE_ThirdPartyAccess);
 		tokenDefinition.setValue(VALUE);
 		tokenDefinition.setName(NAME);
 		tokenDefinition.setDescription(DESCRIPTION);

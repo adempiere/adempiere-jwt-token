@@ -13,23 +13,23 @@ Use this project if you need connect to ADempiere using [ADempiere Middleware](h
 you should change the follows packages for your own implementation, just change the word `template` by your implementation
 
 ```Java
-org.spin.template.model.validator
-org.spin.template.setup
-org.spin.template.util
+org.spin.eca52.model.validator
+org.spin.eca52.setup
+org.spin.eca52.util
 ```
 
-### Model Validators
-Change the `org.spin.template.model.validator.Validator` by your implementation, example: `org.spin.template.model.validator.MyOwnFunctionality`
+### Security Token Generator
+The main class for generate and validate token is here: `org.spin.eca52.security.JWT`
 
-### Model Deploy class
-Change the `org.spin.template.setup.Deploy` by your implementation, example: `org.spin.template.setup.MyOwnSetupForDeploy`
+### Deploy Class
+For deploy project just run the setup `org.spin.eca52.setup.CreateTokenDefinition`, this create a new token definition by client.
 
-### Model Util class for core changes
-Change the `org.spin.template.util.Changes` by your implementation, example: `org.spin.template.util.MyOwnChanges`
+### Static util class for any constant
+The util class for constat and other value is `org.spin.eca52.util.JWTUtil`
 
 ## Binary Project
 
-You can get all binaries from github [here](https://central.sonatype.com/artifact/io.github.adempiere/adempiere-template-project/1.0.0).
+You can get all binaries from github [here](https://central.sonatype.com/artifact/io.github.adempiere/adempiere-jwt-token/1.0.0).
 
 All contruction is from github actions
 
@@ -46,13 +46,13 @@ Is very easy.
 - Gradle
 
 ```Java
-implementation 'io.github.adempiere:adempiere-template-project:1.0.0'
+implementation 'io.github.adempiere:adempiere-jwt-token:1.0.0'
 ```
 
 - SBT
 
 ```
-libraryDependencies += "io.github.adempiere" % "adempiere-template-project" % "1.0.0"
+libraryDependencies += "io.github.adempiere" % "adempiere-jwt-token" % "1.0.0"
 ```
 
 - Apache Maven
@@ -60,7 +60,27 @@ libraryDependencies += "io.github.adempiere" % "adempiere-template-project" % "1
 ```
 <dependency>
     <groupId>io.github.adempiere</groupId>
-    <artifactId>adempiere-template-project</artifactId>
+    <artifactId>adempiere-jwt-token</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
+
+## Step by step
+
+### Create Token Definition
+
+Just Run the **Functionality Setup Process** and it add a new Token Definition, also is added a secret key (fill it).
+
+![Create Token Definition](docs/Create_Token_Definition.gif)
+
+### Set Secret Key
+
+Go to System configurator window and find `ECA52_JWT_SECRET_KEY`, after it just set the secret key.
+
+![Create Token Definition](docs/Add_Secret_Key.gif)
+
+### Generate Token
+
+Now you can generate a new token for third party access from process **System Admin** -> **General Rules** -> **Security** -> **Generate Token for Third Party Access**.
+
+![Create Token Definition](docs/Generate_Token.gif)

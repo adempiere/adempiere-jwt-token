@@ -122,11 +122,9 @@ public class JWT implements IThirdPartyAccessGenerator {
         userTokenValue = builder.compact();
         String tokenValue = null;
 		try {
-			String value = userTokenValue;
 			// 
 			byte[] saltValue = new byte[8];
 			// Digest computation
-			userTokenValue = SecureEngine.encrypt(value);
 			tokenValue = SecureEngine.getSHA512Hash(1000, userTokenValue, saltValue);
 		} catch (NoSuchAlgorithmException e) {
 			new AdempiereException(e);
