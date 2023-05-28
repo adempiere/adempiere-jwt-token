@@ -1,15 +1,21 @@
 # This is a basic workflow to help you get started with Actions
-# This file was contributed by Carlos Parada and Yamel Senih from ERP Consultores y Asociados, C.A
+# This file was contributed by Carlos Parada, Edwin Betancourt and Yamel Senih from ERP Consultores y Asociados, C.A
 
-name: Build With gradle
+name: Continuous Integration with Gradle
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
   push:
-   branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+    branches:
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**'        # matches every branch
   pull_request:
-    branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+    branches:
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**'        # matches every branch
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -36,7 +42,3 @@ jobs:
           arguments: build
         env:
           ADEMPIERE_LIBRARY_VERSION: 'build'
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.PGP_SECRET }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.PGP_PASSPHRASE }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_TOKEN }}
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }}
