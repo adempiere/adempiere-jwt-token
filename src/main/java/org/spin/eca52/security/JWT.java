@@ -20,7 +20,9 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 import org.adempiere.exceptions.AdempiereException;
@@ -34,9 +36,14 @@ import org.spin.model.MADToken;
 import org.spin.model.MADTokenDefinition;
 import org.spin.util.IThirdPartyAccessGenerator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.security.Key;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -53,8 +60,12 @@ public class JWT implements IThirdPartyAccessGenerator {
 	private MADToken token = null;
 	/**	User Token value	*/
 	private String userTokenValue = null;
-	 
-    public JWT() {
+	/**	Language	*/
+	private String language;
+	/**	Session ID	*/
+	private int sessionId;
+
+	public JWT() {
     	//	
     }
 	
@@ -145,11 +156,35 @@ public class JWT implements IThirdPartyAccessGenerator {
 	public boolean validateToken(String tokenValue) {
 		String encryptedValue = null;
 		try {
+			Base64.Decoder decoder = Base64.getUrlDecoder();
+			String[] chunks = tokenValue.split("\\.");
+			if(chunks == null || chunks.length < 3) {
+				throw new AdempiereException("@TokenValue@ @NotFound@");
+			}
+			String payload = new String(decoder.decode(chunks[1]));
+			ObjectMapper mapper = new ObjectMapper();
+			@SuppressWarnings("unchecked")
+			Map<String, Object> dataAsMap = mapper.readValue(payload, Map.class);
+			Object clientAsObject = dataAsMap.get("AD_Client_ID");
+			if(clientAsObject == null
+					|| !clientAsObject.getClass().isAssignableFrom(Integer.class)) {
+				throw new AdempiereException("@Invalid@ @AD_Client_ID@");
+			}
+			String secretKey = MSysConfig.getValue(JWTUtil.ECA52_JWT_SECRET_KEY, (int) clientAsObject);
+			if(Util.isEmpty(secretKey)) {
+				throw new AdempiereException("@InternalError@");
+			}
+	        JwtParser parser = Jwts.parserBuilder().setSigningKey(secretKey).build();
+	        Jws<Claims> claims = parser.parseClaimsJws(tokenValue);
+	        language = claims.getBody().get("AD_Language", String.class);
+	        if(!Util.isEmpty(claims.getBody().getId())) {
+	        	sessionId = Integer.parseInt(claims.getBody().getId());
+	        } else {
+	        	sessionId = 0;
+	        }
 			byte[] saltValue = new byte[8];
 			encryptedValue = SecureEngine.getSHA512Hash(1000, tokenValue, saltValue);
-		} catch (NoSuchAlgorithmException e) {
-			new AdempiereException(e);
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			new AdempiereException(e);
 		}
 		token = getToken(encryptedValue);
@@ -183,5 +218,13 @@ public class JWT implements IThirdPartyAccessGenerator {
 				.setParameters(encryptedValue)
 				.setOnlyActiveRecords(true)
 				.first();
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+	
+	public int getSessionId() {
+		return sessionId;
 	}
 }
