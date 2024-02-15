@@ -37,12 +37,38 @@ public class CreateTokenDefinition implements ISetupDefinition {
 	
 	@Override
 	public String doIt(Properties context, String transactionName) {
+		//	Disable all token definitons by TPA token type
+		disableTokenDefinitions(context, transactionName);
 		//	Add Token Definition
 		createTokenDefinition(context, transactionName);
 		//	financial management
 		return "@AD_SetupDefinition_ID@ @Ok@";
 	}
-	
+
+	/**
+	 * Disable Token Definitions TPA
+	 * @param context
+	 * @param transactionName
+	 * @return
+	 */
+	private void disableTokenDefinitions(Properties context, String transactionName) {
+		new Query(
+			context,
+			MADTokenDefinition.Table_Name,
+			MADTokenDefinition.COLUMNNAME_Classname + " != ? AND " + MADTokenDefinition.COLUMNNAME_TokenType + " = ?",
+			transactionName
+		)
+			.setParameters(JWT.class.getName(), MADTokenDefinition.TOKENTYPE_ThirdPartyAccess)
+			.setClient_ID()
+			.setOnlyActiveRecords(true)
+			.getIDsAsList()
+			.forEach(tokenDefinitionId -> {
+				MADTokenDefinition token = MADTokenDefinition.getById(context, tokenDefinitionId, transactionName);
+				token.setIsActive(false);
+				token.saveEx();
+			});
+	}
+
 	/**
 	 * Create Token Definition
 	 * @param context
