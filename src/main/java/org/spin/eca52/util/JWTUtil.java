@@ -25,4 +25,7 @@ package org.spin.eca52.util;
 public class JWTUtil {
 	/**	Default key for JWT	*/
 	public static final String ECA52_JWT_SECRET_KEY = "ECA52_JWT_SECRET_KEY";
+
+	/**	Default key for JWT expiration time	*/
+	public static final String ECA52_JWT_EXPIRATION_TIME = "ECA52_JWT_EXPIRATION_TIME";
 }

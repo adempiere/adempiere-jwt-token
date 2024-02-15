@@ -22,6 +22,7 @@ import org.compiere.model.MSysConfig;
 import org.compiere.model.Query;
 import org.compiere.util.Env;
 import org.spin.eca52.security.JWT;
+import org.spin.eca52.util.JWTUtil;
 import org.spin.model.MADTokenDefinition;
 import org.spin.util.ISetupDefinition;
 
@@ -39,6 +40,9 @@ public class CreateTokenDefinition implements ISetupDefinition {
 	public String doIt(Properties context, String transactionName) {
 		//	Add Token Definition
 		createTokenDefinition(context, transactionName);
+
+		//	Add System Configurator
+		createSystemConfigurator(context, transactionName);
 		//	financial management
 		return "@AD_SetupDefinition_ID@ @Ok@";
 	}
@@ -70,13 +74,24 @@ public class CreateTokenDefinition implements ISetupDefinition {
 		tokenDefinition.setIsHasExpireDate(false);
 		tokenDefinition.setExpirationTime(Env.ZERO);
 		tokenDefinition.saveEx();
-		MSysConfig secretKey = new MSysConfig(context, 0, transactionName);
+		return tokenDefinition;
+	}
+
+
+	private MSysConfig createSystemConfigurator(Properties context, String transactionName) {
+		MSysConfig secretKey = MSysConfig.get(context, JWTUtil.ECA52_JWT_SECRET_KEY, transactionName);
+		if (secretKey != null) {
+			return secretKey;
+		}
+		//
+		secretKey = new MSysConfig(context, 0, transactionName);
 		secretKey.setAD_Org_ID(0);
 		secretKey.setConfigurationLevel(MSysConfig.CONFIGURATIONLEVEL_Client);
 		secretKey.setValue("");
-		secretKey.setName("ECA52_JWT_SECRET_KEY");
+		secretKey.setName(JWTUtil.ECA52_JWT_SECRET_KEY);
 		secretKey.setDescription("A Secret Key for generate JWT based token, fill it");
 		secretKey.saveEx();
-		return tokenDefinition;
+		return secretKey;
 	}
+
 }
