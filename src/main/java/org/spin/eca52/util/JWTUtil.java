@@ -26,6 +26,6 @@ public class JWTUtil {
 	/**	Default key for JWT	*/
 	public static final String ECA52_JWT_SECRET_KEY = "ECA52_JWT_SECRET_KEY";
 
-	/**	Default key for JWT expiration time	*/
+	/**	Default expiration time for JWT	*/
 	public static final String ECA52_JWT_EXPIRATION_TIME = "ECA52_JWT_EXPIRATION_TIME";
 }
