@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.crypto.SecretKey;
+
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MSysConfig;
 import org.compiere.model.Query;
@@ -38,15 +40,11 @@ import org.spin.util.IThirdPartyAccessGenerator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.security.Key;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 /**
@@ -90,6 +88,32 @@ public class JWT implements IThirdPartyAccessGenerator {
 		return userTokenValue;
 	}
 
+	/**
+	 * Get JWT Secrect Key generates with HMAC-SHA algorithms
+	 * @return
+	 */
+	private static String getJWT_SecretKeyAsString(int clientId) {
+		// get by SysConfig client
+		String secretKey = MSysConfig.getValue(
+			JWTUtil.ECA52_JWT_SECRET_KEY,
+			clientId
+		);
+		if(Util.isEmpty(secretKey, true)) {
+			throw new AdempiereException(
+				"@ECA52_JWT_SECRET_KEY@ @NotFound@"
+			);
+		}
+		return secretKey;
+	}
+	private static SecretKey getJWT_SecretKey(int clientId) {
+		byte[] keyBytes = Base64.getDecoder().decode(
+			getJWT_SecretKeyAsString(clientId)
+		);
+		SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
+		return secretKey;
+	}
+
+
 	@Override
 	public String generateToken(int userId, int roleId) {
 		//	Validate user
@@ -103,35 +127,51 @@ public class JWT implements IThirdPartyAccessGenerator {
 		MADToken token = new MADToken(Env.getCtx(), 0, null);
         token.setTokenType(MADTokenDefinition.TOKENTYPE_ThirdPartyAccess);
         if(token.getAD_TokenDefinition_ID() <= 0) {
+			// TODO: Change message translation
         	throw new AdempiereException("@AD_TokenDefinition_ID@ @NotFound@");
         }
-        String secretKey = MSysConfig.getValue(JWTUtil.ECA52_JWT_SECRET_KEY, Env.getAD_Client_ID(Env.getCtx()));
-        if(Util.isEmpty(secretKey)) {
-        	throw new AdempiereException("@ECA52_JWT_SECRET_KEY@ @NotFound@");
-        }
-        MADTokenDefinition definition = MADTokenDefinition.getById(Env.getCtx(), token.getAD_TokenDefinition_ID(), null);
-        //	Create default session
+
+		MADTokenDefinition definition = MADTokenDefinition.getById(Env.getCtx(), token.getAD_TokenDefinition_ID(), null);
+		if (definition == null || definition.getAD_TokenDefinition_ID() <= 0) {
+			throw new AdempiereException("@AD_TokenDefinition_ID@ @NotFound@");
+		}
+
+		//	Create default session
         //	TODO: Create session with created from parameter
-		byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        Key key = Keys.hmacShaKeyFor(keyBytes);
-        JwtBuilder builder = Jwts.builder()
-//        		.setId(String.valueOf(session.getAD_Session_ID()))
-        		.claim("AD_Client_ID", Env.getAD_Client_ID(Env.getCtx()))
-        		.claim("AD_Org_ID", Env.getAD_Org_ID(Env.getCtx()))
-        		.claim("AD_Role_ID", roleId)
-        		.claim("AD_User_ID", userId)
-        		.claim("M_Warehouse_ID", Env.getContextAsInt(Env.getCtx(), "#M_Warehouse_ID"))
-        		.claim("AD_Language", Env.getAD_Language(Env.getCtx()))
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .signWith(key, SignatureAlgorithm.HS256);
+		int clientId = Env.getAD_Client_ID(Env.getCtx());
+		SecretKey secretKey = getJWT_SecretKey(clientId);
+		long currentTimeMillis = System.currentTimeMillis();
+		JwtBuilder jwtBuilder = Jwts.builder()
+			// .id(String.valueOf(session.getAD_Session_ID()))
+			.claim("AD_Client_ID", clientId)
+			.claim("AD_Org_ID", Env.getAD_Org_ID(Env.getCtx()))
+			.claim("AD_Role_ID", roleId)
+			.claim("AD_User_ID", userId)
+			.claim("M_Warehouse_ID", Env.getContextAsInt(Env.getCtx(), "#M_Warehouse_ID"))
+			.claim("AD_Language", Env.getAD_Language(Env.getCtx()))
+			.issuedAt(
+				new Date(currentTimeMillis)
+			)
+			.signWith(secretKey, Jwts.SIG.HS256)
+		;
+
 		//	Validate
-        if(definition.isHasExpireDate()) {
-        	BigDecimal expirationTime = Optional.ofNullable(definition.getExpirationTime()).orElse(new BigDecimal(5 * 60 * 1000));
-        	token.setExpireDate(new Timestamp(System.currentTimeMillis() + expirationTime.longValue()));
-        	builder.setExpiration(new Date(System.currentTimeMillis() + expirationTime.longValue()));
-        }
-        userTokenValue = builder.compact();
-        String tokenValue = null;
+		if(definition.isHasExpireDate()) {
+			BigDecimal expirationTime = Optional.ofNullable(
+					definition.getExpirationTime()
+				).orElse(
+					new BigDecimal(5 * 60 * 1000)
+				)
+			;
+			token.setExpireDate(
+				new Timestamp(currentTimeMillis + expirationTime.longValue())
+			);
+			jwtBuilder.expiration(
+				new Date(currentTimeMillis + expirationTime.longValue())
+			);
+		}
+		userTokenValue = jwtBuilder.compact();
+		String tokenValue = null;
 		try {
 			// 
 			byte[] saltValue = new byte[8];
@@ -170,18 +210,24 @@ public class JWT implements IThirdPartyAccessGenerator {
 					|| !clientAsObject.getClass().isAssignableFrom(Integer.class)) {
 				throw new AdempiereException("@Invalid@ @AD_Client_ID@");
 			}
-			String secretKey = MSysConfig.getValue(JWTUtil.ECA52_JWT_SECRET_KEY, (int) clientAsObject);
-			if(Util.isEmpty(secretKey)) {
-				throw new AdempiereException("@InternalError@");
+
+			SecretKey secretKey = getJWT_SecretKey(
+				(int) clientAsObject
+			);
+			//	Validate if is token based
+			JwtParser parser = Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+			;
+			Jws<Claims> claims = parser.parseSignedClaims(tokenValue);
+			if(!Util.isEmpty(claims.getPayload().getId(), true)) {
+				sessionId = Integer.parseInt(
+					claims.getPayload().getId()
+				);
+			} else {
+				sessionId = 0;
 			}
-	        JwtParser parser = Jwts.parserBuilder().setSigningKey(secretKey).build();
-	        Jws<Claims> claims = parser.parseClaimsJws(tokenValue);
-	        language = claims.getBody().get("AD_Language", String.class);
-	        if(!Util.isEmpty(claims.getBody().getId())) {
-	        	sessionId = Integer.parseInt(claims.getBody().getId());
-	        } else {
-	        	sessionId = 0;
-	        }
+
 			byte[] saltValue = new byte[8];
 			encryptedValue = SecureEngine.getSHA512Hash(1000, tokenValue, saltValue);
 		} catch (Exception e) {
