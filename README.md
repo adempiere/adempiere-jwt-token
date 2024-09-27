@@ -75,7 +75,7 @@ Just Run the **Functionality Setup Process** and it add a new Token Definition, 
 
 ### Set Secret Key
 
-Go to System configurator window and find `ECA52_JWT_SECRET_KEY`, after it just set the secret key.
+Go to System configurator window and find `ECA52_JWT_SECRET_KEY`, after it just set the secret key. A example can be getting from [here](https://www.grc.com/passwords.htm)
 
 ![Create Token Definition](docs/Add_Secret_Key.gif)
 
