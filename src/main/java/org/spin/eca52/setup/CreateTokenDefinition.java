@@ -43,7 +43,8 @@ public class CreateTokenDefinition implements ISetupDefinition {
 
 		//	Add System Configurator
 		createSystemConfigurator(context, transactionName);
-		//	financial management
+
+		//	token definition
 		return "@AD_SetupDefinition_ID@ @Ok@";
 	}
 	
@@ -85,6 +86,7 @@ public class CreateTokenDefinition implements ISetupDefinition {
 		}
 		//
 		secretKey = new MSysConfig(context, 0, transactionName);
+		secretKey.setEntityType(JWTUtil.ECA52_EntityType);
 		secretKey.setAD_Org_ID(0);
 		secretKey.setConfigurationLevel(MSysConfig.CONFIGURATIONLEVEL_Client);
 		secretKey.setValue("");

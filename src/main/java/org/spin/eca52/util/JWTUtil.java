@@ -23,9 +23,14 @@ package org.spin.eca52.util;
  * @author Yamel Senih, ysenih@erpya.com, ERPCyA http://www.erpya.com
  */
 public class JWTUtil {
+
+	/**	Entity Type Spin Contribution (JWT Token Generator) */
+	public static final String ECA52_EntityType = "ECA52";
+
 	/**	Default key for JWT	*/
 	public static final String ECA52_JWT_SECRET_KEY = "ECA52_JWT_SECRET_KEY";
 
 	/**	Default expiration time for JWT	*/
 	public static final String ECA52_JWT_EXPIRATION_TIME = "ECA52_JWT_EXPIRATION_TIME";
+
 }
